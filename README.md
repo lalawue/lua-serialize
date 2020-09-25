@@ -1,19 +1,27 @@
-```lua
-	serialize = require "serialize"
 
-	-- pack serialize lua objects into a lightuserdata (use malloc internal) 
-	-- It support type : nil , number , boolean, lightuserdata , string , table (without recursion)
-	bin = serialize.pack (...) 
+# About
+
+for LuaJIT.
+
+# Usage
+
+```lua
+	packer = require "packer"
+
+	-- pack lua objects into a lightuserdata (malloc fragment internal) 
+	-- It support type : nil, number, boolean, lightuserdata, string, table (without recursion)
+	c_fragment_bin = packer.pack (...) 
 
 	-- You can append some objects end of the binary block packed before
-	serialize.append(bin, ...)
+	packer.append(c_fragment_bin, ...)
 
-	-- unpack extract ... from bin, and free the memory. 
+	-- unpack extract ... from c_fragment_bin, and free the memory. 
 	-- You can only unpack binary block once.
-	serialize.unpack(bin)
+	packer.unpack(c_fragment_bin)
 
-	-- You can use serialize.serialize(bin) to serialize them to one block
-	-- You can send the block to the other process.
-	local block, length = serialize.serialize(bin)
-	serialize.deserialize(block)
+	-- use packer.inflate(c_fragment_bin) to inflate them to one string block
+    local string_block = packer.inflate(c_fragment_bin)
+    
+    -- packer.deflate(string_block) to get c_bin
+	packer.deflate(string_block)
 ```

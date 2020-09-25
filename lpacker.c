@@ -298,7 +298,7 @@ static void pack_one(lua_State *L, struct write_block *b, int index, int depth);
 
 static int
 wb_table_array(lua_State *L, struct write_block * wb, int index, int depth) {
-	int array_size = lua_rawlen(L,index);
+	int array_size = lua_objlen(L,index);
 	if (array_size >= MAX_COOKIE-1) {
 		int n = COMBINE_TYPE(TYPE_TABLE, MAX_COOKIE-1);
 		wb_push(wb, &n, 1);
@@ -317,6 +317,17 @@ wb_table_array(lua_State *L, struct write_block * wb, int index, int depth) {
 
 	return array_size;
 }
+
+#if LUA_VERSION_NUM < 503
+
+static int
+lua_isinteger(lua_State *L, int index) {
+	int32_t x = (int32_t)lua_tointeger(L,index);
+	lua_Number n = lua_tonumber(L,index);
+	return ((lua_Number)x==n);
+}
+
+#endif
 
 static void
 wb_table_hash(lua_State *L, struct write_block * wb, int index, int depth, int array_size) {
@@ -347,17 +358,6 @@ wb_table(lua_State *L, struct write_block *wb, int index, int depth) {
 	int array_size = wb_table_array(L, wb, index, depth);
 	wb_table_hash(L, wb, index, depth, array_size);
 }
-
-#if LUA_VERSION_NUM < 503
-
-static int
-lua_isinteger(lua_State *L, int index) {
-	int32_t x = (int32_t)lua_tointeger(L,index);
-	lua_Number n = lua_tonumber(L,index);
-	return ((lua_Number)x==n);
-}
-
-#endif
 
 static void
 pack_one(lua_State *L, struct write_block *b, int index, int depth) {
@@ -768,15 +768,15 @@ deseristring(lua_State *L) {
 }
 
 int
-luaopen_serialize(lua_State *L) {
+luaopen_packer(lua_State *L) {
 	luaL_Reg l[] = {
 		{ "pack", lpack },
 		{ "unpack", lunpack },
 		{ "append", lappend },
-		{ "serialize", lserialize },
-		{ "deserialize", ldeserialize },
-		{ "serialize_string", seristring },
-		{ "deseristring_string", deseristring },
+		{ "inflate_bin", lserialize }, // to lightuserdata
+		{ "deflate_bin", ldeserialize }, // to lightuserdata
+		{ "inflate", seristring }, // to string
+		{ "deflate", deseristring }, // to string
 		{ "dump", _dump },
 		{ NULL, NULL },
 	};

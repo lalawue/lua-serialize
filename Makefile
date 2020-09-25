@@ -1,9 +1,7 @@
-all : serialize
+all : packer 
 
-linux : serialize.so
-
-serialize.so : serialize.c
+packer.so : packer.c
 	gcc -Wall -g -o $@ -fPIC --shared $^
 
-serialize : serialize.c
-	gcc -Wall -g -o $@.dll --shared $^ -I/usr/local/include -L/usr/local/bin -llua53
+packer : lpacker.c
+	gcc -Wall -g -o $@.so --shared $^ -I/usr/local/include -L/usr/local/bin -lluajit
